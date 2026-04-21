@@ -40,6 +40,9 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Architecture:** [2-3 sentences about approach]
 
 **Tech Stack:** [Key technologies/libraries]
+**Repo:** [output of: git remote get-url origin]
+**Base Branch:** [output of: git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@' — fallback: main]
+**Feature Branch:** feat/[YYYY-MM-DD-<topic>] (derived from plan filename, created by container not planner)
 
 ---
 ```
