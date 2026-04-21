@@ -40,6 +40,7 @@ digraph brainstorming {
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
+    "Detect repo context" [shape=box];
     "Write design doc" [shape=box];
     "Invoke writing-plans skill" [shape=doublecircle];
 
@@ -48,7 +49,8 @@ digraph brainstorming {
     "Propose 2-3 approaches" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Write design doc" [label="yes"];
+    "User approves design?" -> "Detect repo context" [label="yes"];
+    "Detect repo context" -> "Write design doc";
     "Write design doc" -> "Invoke writing-plans skill";
 }
 ```
