@@ -27,8 +27,9 @@ You MUST create a task for each of these items and complete them in order:
 2. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
-5. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` and commit
-6. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+5. **Detect repo context** — run plan placement detection (see ## Plan Placement below)
+6. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` inside the correct repo and commit
+7. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -74,6 +75,33 @@ digraph brainstorming {
 - Ask after each section whether it looks right so far
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
+
+## Plan Placement
+
+Run this detection BEFORE saving any plan or design doc:
+
+```dot
+digraph plan_placement {
+    "Run: git rev-parse --show-toplevel" [shape=box];
+    "In a git repo?" [shape=diamond];
+    "Single-repo mode" [shape=box];
+    "Scan subdirs (1 level): git -C <dir> rev-parse 2>/dev/null" [shape=box];
+    "Git repos found?" [shape=diamond];
+    "Multi-repo mode" [shape=box];
+    "Error: no repos found — ask user" [shape=box];
+
+    "Run: git rev-parse --show-toplevel" -> "In a git repo?";
+    "In a git repo?" -> "Single-repo mode" [label="yes (exit 0)"];
+    "In a git repo?" -> "Scan subdirs (1 level): git -C <dir> rev-parse 2>/dev/null" [label="no (exit non-zero)"];
+    "Scan subdirs (1 level): git -C <dir> rev-parse 2>/dev/null" -> "Git repos found?";
+    "Git repos found?" -> "Multi-repo mode" [label="yes"];
+    "Git repos found?" -> "Error: no repos found — ask user" [label="no"];
+}
+```
+
+**Iron law:** A plan for repo X is ALWAYS saved inside repo X. Never at the root, never inside another repo.
+
+**In multi-repo mode:** only create plans for repos the feature actually touches. Do not create empty plans for uninvolved repos.
 
 ## After the Design
 
