@@ -548,7 +548,54 @@ git commit --allow-empty -m "chore: docker image builds and passes tool verifica
 
 ---
 
-## Task 7: Add usage documentation and final commit
+## Task 7: Install sandbox.sh globally via symlink
+
+**Files:**
+- No files created — this is a host environment setup step
+
+`sandbox.sh` lives in the superpowers-tailored repo but must be callable from any project directory without a full path.
+
+**Step 1: Ensure ~/.local/bin exists and is on PATH**
+
+Run:
+```bash
+mkdir -p ~/.local/bin
+echo $PATH | grep -q "$HOME/.local/bin" && echo "already on PATH" || echo "NOT on PATH"
+```
+
+If NOT on PATH: add `export PATH="$HOME/.local/bin:$PATH"` to your `~/.bashrc` or `~/.zshrc`, then reload:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+**Step 2: Create symlink**
+
+Run:
+```bash
+ln -sf "$(pwd)/sandbox/sandbox.sh" ~/.local/bin/sandbox
+```
+
+This must be run from the root of the superpowers-tailored repo. The symlink points to the repo copy, so any future updates to `sandbox.sh` are picked up automatically — no reinstall needed.
+
+**Step 3: Verify**
+
+Run:
+```bash
+which sandbox
+sandbox --help 2>&1 | head -5 || sandbox 2>&1 | head -5
+```
+
+Expected: `which sandbox` prints `~/.local/bin/sandbox`. The second command prints usage (exits with error is fine — no plan arg was passed).
+
+**Step 4: Commit a note about the install step**
+
+```bash
+git commit --allow-empty -m "chore: sandbox.sh symlinked to ~/.local/bin/sandbox"
+```
+
+---
+
+## Task 8: Add usage documentation and final commit
 
 **Files:**
 - Create: `sandbox/README.md`
@@ -641,6 +688,7 @@ Before considering this complete:
 - [ ] `shellcheck sandbox/sandbox.sh sandbox/container-run.sh` → 0 errors
 - [ ] `docker build -t claude-sandbox:latest sandbox/` → exits 0
 - [ ] `docker run --rm claude-sandbox:latest bash -c "claude --version"` → prints version
-- [ ] `git log --oneline` shows 7 commits for this feature
+- [ ] `which sandbox` → prints `~/.local/bin/sandbox`
+- [ ] `git log --oneline` shows 8 commits for this feature
 - [ ] `grep "Plan Placement\|Iron law" skills/brainstorming/SKILL.md` → both appear
 - [ ] `grep "Feature Branch:" skills/writing-plans/SKILL.md` → appears in header template
