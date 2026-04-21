@@ -4,7 +4,7 @@
 
 **Goal:** Build a Docker-based sandbox that runs Claude Code implementation sessions with full tool autonomy, no permission prompts, and no blast radius on the host OS.
 
-**Architecture:** Three shell scripts (`sandbox.sh`, `container-run.sh`, a test script) plus a `Dockerfile` live in a new `sandbox/` directory in this repo. Two existing skill files (`brainstorming/SKILL.md`, `writing-plans/SKILL.md`) are updated with repo-detection logic and extended plan headers. `sandbox.sh` lives on the host, parses the plan file, launches the container, and appends cost records to a ledger after the container exits.
+**Architecture:** Three shell scripts (`sandbox.sh`, `container-run.sh`, a test script) plus a `Dockerfile` live in a new `sandbox/` directory in this repo. Two existing skill files (`brainstorming/SKILL.md`, `writing-plans/SKILL.md`) are updated with repo-detection logic and extended plan headers. Because the plugin is cached locally by Claude Code, `sandbox.sh` is always available at `${CLAUDE_PLUGIN_ROOT}/sandbox/sandbox.sh` — no install step needed. A `/sandbox` slash command is added to `commands/` so it can be triggered from inside a Claude Code session. `sandbox.sh` auto-builds the Docker image on first run using `$BASH_SOURCE` to locate the `Dockerfile`.
 
 **Tech Stack:** Bash, Docker, GitHub CLI (`gh`), Claude Code CLI (`claude`), shellcheck (for script validation)
 
@@ -406,6 +406,9 @@ Create `sandbox/sandbox.sh`:
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Location of this script — used to find the Dockerfile for auto-build
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 usage() {
   echo "Usage: sandbox.sh <path-to-plan.md>"
   echo ""
@@ -436,6 +439,12 @@ TOPIC=$(basename "$PLAN_FILE" .md)
 PLAN_REPO_ROOT=$(git -C "$(dirname "$PLAN_FILE")" rev-parse --show-toplevel 2>/dev/null \
   || { echo "Error: plan file is not inside a git repo"; exit 1; })
 PLAN_PATH="${PLAN_FILE#$PLAN_REPO_ROOT/}"
+
+# Auto-build Docker image if not present (Dockerfile lives next to this script)
+if ! docker image inspect claude-sandbox:latest &>/dev/null; then
+  echo "Building claude-sandbox Docker image (first run)..."
+  docker build -t claude-sandbox:latest "${SCRIPT_DIR}"
+fi
 
 # Create log file
 LOG_DIR="$HOME/.claude/sandbox-logs"
@@ -548,49 +557,43 @@ git commit --allow-empty -m "chore: docker image builds and passes tool verifica
 
 ---
 
-## Task 7: Install sandbox.sh globally via symlink
+## Task 7: Create /sandbox slash command
 
 **Files:**
-- No files created — this is a host environment setup step
+- Create: `commands/sandbox.md`
 
-`sandbox.sh` lives in the superpowers-tailored repo but must be callable from any project directory without a full path.
+The plugin is cached locally by Claude Code at `${CLAUDE_PLUGIN_ROOT}`. Scripts inside the plugin are accessible at that path — no install step needed. The `/sandbox` command tells Claude to locate and run the script from the plugin cache.
 
-**Step 1: Ensure ~/.local/bin exists and is on PATH**
+Look at `commands/brainstorm.md` first for the exact format to follow:
 
-Run:
-```bash
-mkdir -p ~/.local/bin
-echo $PATH | grep -q "$HOME/.local/bin" && echo "already on PATH" || echo "NOT on PATH"
+Run: `cat commands/brainstorm.md`
+
+**Step 1: Create commands/sandbox.md**
+
+```markdown
+---
+description: Run a plan file in the isolated Docker sandbox container. Invoke when the user wants to execute an implementation plan in the sandbox.
+---
+
+The user wants to run a plan in the sandbox container.
+
+1. Get the plan file path from the user's message
+2. Locate the sandbox script: it lives at `sandbox/sandbox.sh` inside the plugin root. The plugin root is the parent of the `commands/` directory where this file lives. Determine it from the base directory context available in the session.
+3. Run: `bash "<plugin-root>/sandbox/sandbox.sh" <plan-file-path>`
+4. Show the user the log file path so they can monitor with `tail -f`
 ```
 
-If NOT on PATH: add `export PATH="$HOME/.local/bin:$PATH"` to your `~/.bashrc` or `~/.zshrc`, then reload:
-```bash
-source ~/.bashrc  # or source ~/.zshrc
-```
+**Step 2: Verify**
 
-**Step 2: Create symlink**
+Run: `cat commands/sandbox.md`
 
-Run:
-```bash
-ln -sf "$(pwd)/sandbox/sandbox.sh" ~/.local/bin/sandbox
-```
+Expected: file exists with frontmatter and the 4-step instructions.
 
-This must be run from the root of the superpowers-tailored repo. The symlink points to the repo copy, so any future updates to `sandbox.sh` are picked up automatically — no reinstall needed.
-
-**Step 3: Verify**
-
-Run:
-```bash
-which sandbox
-sandbox --help 2>&1 | head -5 || sandbox 2>&1 | head -5
-```
-
-Expected: `which sandbox` prints `~/.local/bin/sandbox`. The second command prints usage (exits with error is fine — no plan arg was passed).
-
-**Step 4: Commit a note about the install step**
+**Step 3: Commit**
 
 ```bash
-git commit --allow-empty -m "chore: sandbox.sh symlinked to ~/.local/bin/sandbox"
+git add commands/sandbox.md
+git commit -m "feat: add /sandbox slash command"
 ```
 
 ---
@@ -607,28 +610,31 @@ git commit --allow-empty -m "chore: sandbox.sh symlinked to ~/.local/bin/sandbox
 
 Runs Claude Code implementation sessions in an isolated Docker container — full tool autonomy, no permission prompts, no blast radius on the host OS.
 
+The sandbox scripts live in this plugin and are available at `${CLAUDE_PLUGIN_ROOT}/sandbox/` — no manual install needed. The Docker image is built automatically on first run.
+
 ## Prerequisites
 
 - Docker running locally
 - `ANTHROPIC_API_KEY` set in your shell (Anthropic API key)
 - `GITHUB_TOKEN` set in your shell (fine-grained token: repo contents read/write + pull requests write)
 
-## Build the image (once)
-
-```bash
-docker build -t claude-sandbox:latest sandbox/
-```
-
 ## Usage
 
-```bash
-# Single repo
-sandbox/sandbox.sh docs/plans/2026-04-20-my-feature.md
+**From inside a Claude Code session:**
+```
+/sandbox docs/plans/2026-04-20-my-feature.md
+```
 
-# Multi-repo (run in parallel)
-sandbox/sandbox.sh backend/docs/plans/2026-04-20-auth.md &
-sandbox/sandbox.sh frontend/docs/plans/2026-04-20-auth-ui.md &
+**From a terminal (multi-repo, parallel):**
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/sandbox/sandbox.sh" backend/docs/plans/2026-04-20-auth.md &
+bash "${CLAUDE_PLUGIN_ROOT}/sandbox/sandbox.sh" frontend/docs/plans/2026-04-20-auth-ui.md &
 wait
+```
+
+The Docker image builds automatically on first run. To force a rebuild after a plugin update:
+```bash
+docker rmi claude-sandbox:latest
 ```
 
 ## Watch logs
@@ -648,15 +654,16 @@ awk -F',' 'NR>1 {sum += $5} END {print "Total: $" sum}' ~/.claude/sandbox-costs.
 
 ## How it works
 
-1. `sandbox.sh` parses the plan header (Repo, Base Branch, Feature Branch)
-2. Starts a Docker container with only `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, and a write-only log file mount
-3. Container clones the repo, creates the feature branch, reads the README, installs deps, runs `executing-plans`
-4. Container creates a PR and exits
-5. `sandbox.sh` parses the log, appends a cost record to `~/.claude/sandbox-costs.csv`
+1. `sandbox.sh` auto-builds the Docker image if not present (Dockerfile is next to it in the plugin)
+2. Parses the plan header (Repo, Base Branch, Feature Branch)
+3. Starts a container with only `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`, and a write-only log file
+4. Container clones the repo, creates the feature branch, reads README, installs deps, runs `executing-plans`
+5. Container creates a PR and exits
+6. `sandbox.sh` appends a cost record to `~/.claude/sandbox-costs.csv`
 
 ## Plan header requirements
 
-Plans must include these fields (added automatically by `writing-plans` skill):
+Added automatically by `writing-plans` skill:
 
 ```
 **Repo:** https://github.com/user/repo.git
@@ -688,7 +695,7 @@ Before considering this complete:
 - [ ] `shellcheck sandbox/sandbox.sh sandbox/container-run.sh` → 0 errors
 - [ ] `docker build -t claude-sandbox:latest sandbox/` → exits 0
 - [ ] `docker run --rm claude-sandbox:latest bash -c "claude --version"` → prints version
-- [ ] `which sandbox` → prints `~/.local/bin/sandbox`
+- [ ] `cat commands/sandbox.md` → file exists with frontmatter and 4-step instructions
 - [ ] `git log --oneline` shows 8 commits for this feature
 - [ ] `grep "Plan Placement\|Iron law" skills/brainstorming/SKILL.md` → both appear
 - [ ] `grep "Feature Branch:" skills/writing-plans/SKILL.md` → appears in header template
