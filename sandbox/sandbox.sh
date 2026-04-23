@@ -15,8 +15,16 @@ usage() {
 
 [ $# -eq 1 ] || usage
 [ -f "$1" ] || { echo "Error: plan file not found: $1"; exit 1; }
-[ -n "${ANTHROPIC_API_KEY:-}" ] || { echo "Error: ANTHROPIC_API_KEY not set"; exit 1; }
-[ -n "${GITHUB_TOKEN:-}" ] || { echo "Error: GITHUB_TOKEN not set"; exit 1; }
+
+# Load secrets file if env vars are not already set
+SECRETS_FILE="$HOME/.claude/sandbox-secrets"
+if [ -f "$SECRETS_FILE" ]; then
+  # shellcheck source=/dev/null
+  source "$SECRETS_FILE"
+fi
+
+[ -n "${ANTHROPIC_API_KEY:-}" ] || { echo "Error: ANTHROPIC_API_KEY not set (add to ~/.claude/sandbox-secrets)"; exit 1; }
+[ -n "${GITHUB_TOKEN:-}" ] || { echo "Error: GITHUB_TOKEN not set (add to ~/.claude/sandbox-secrets)"; exit 1; }
 
 PLAN_FILE="$(realpath "$1")"
 
