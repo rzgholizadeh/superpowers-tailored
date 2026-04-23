@@ -18,13 +18,10 @@ log "Repo: $REPO_URL"
 log "Branch: $FEATURE_BRANCH"
 log "Plan: $PLAN_PATH"
 
-# Authenticate GitHub CLI
-log "Authenticating GitHub CLI..."
-echo "$GITHUB_TOKEN" | gh auth login --with-token
-
-# Configure git identity
+# Configure git identity (GITHUB_TOKEN env var is sufficient for gh CLI auth)
 git config --global user.email "sandbox@claude-agent"
 git config --global user.name "Claude Sandbox"
+git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 # Clone repo
 log "Cloning $REPO_URL..."
