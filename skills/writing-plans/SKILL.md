@@ -97,6 +97,10 @@ git commit -m "feat: add specific feature"
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
 
+## Commit and Push the Plan
+
+- Commit and push the plan file: `git add docs/plans/<filename>.md && git commit -m "docs: add <feature> plan" && git push`
+
 ## Execution Handoff
 
 After saving the plan, offer execution choice:
