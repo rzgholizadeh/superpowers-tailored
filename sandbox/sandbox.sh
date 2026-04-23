@@ -46,6 +46,7 @@ LOG_DIR="$HOME/.claude/sandbox-logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/$(date +%Y%m%dT%H%M%S)-$TOPIC.log"
 touch "$LOG_FILE"
+chmod 666 "$LOG_FILE"
 
 echo "Starting sandbox"
 echo "  Plan:    $TOPIC"
