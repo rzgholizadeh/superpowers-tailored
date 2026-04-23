@@ -39,6 +39,10 @@ claude --dangerously-skip-permissions \
   -p "Read the README first. Install any missing OS-level or project-level dependencies. Then use superpowers:subagent-driven-development on $PLAN_PATH." \
   2>&1 | tee -a "$LOG"
 
+# Push feature branch
+log "Pushing branch $FEATURE_BRANCH..."
+git push -u origin "$FEATURE_BRANCH"
+
 # Create PR
 log "Creating pull request..."
 PLAN_TITLE=$(head -1 "$PLAN_PATH" | sed 's/^# //')
