@@ -27,10 +27,13 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
 # Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code
 
-# Create workspace dir
-RUN mkdir -p /workspace /logs
+# Create non-root user (claude refuses --dangerously-skip-permissions as root)
+RUN useradd -m -s /bin/bash agent && \
+    mkdir -p /workspace /logs && \
+    chown agent:agent /workspace /logs
 
 COPY container-run.sh /usr/local/bin/container-run.sh
 RUN chmod +x /usr/local/bin/container-run.sh
 
+USER agent
 ENTRYPOINT ["/usr/local/bin/container-run.sh"]
