@@ -108,7 +108,8 @@ digraph plan_placement {
 ## After the Design
 
 **Documentation:**
-- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Write **one** design doc covering the full feature: `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- In multi-repo mode: copy the same design doc into each affected repo's `docs/plans/` (same file, same content — it is a cross-cutting document, not a per-repo document)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Do NOT commit — writing-plans will create the feature branch and commit both the design doc and plan together
 
