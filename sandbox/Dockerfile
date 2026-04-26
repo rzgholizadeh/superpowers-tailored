@@ -32,6 +32,12 @@ RUN useradd -m -s /bin/bash agent && \
     mkdir -p /workspace /logs && \
     chown agent:agent /workspace /logs
 
+# Pre-configure superpowers plugin for agent user
+RUN mkdir -p /home/agent/.claude && \
+    echo '{"extraKnownMarketplaces":{"superpowers-dev":{"source":{"source":"git","url":"https://github.com/rzgholizadeh/superpowers-tailored.git"}}},"enabledPlugins":{"superpowers@superpowers-dev":true}}' \
+    > /home/agent/.claude/settings.json && \
+    chown -R agent:agent /home/agent/.claude
+
 COPY container-run.sh /usr/local/bin/container-run.sh
 RUN chmod +x /usr/local/bin/container-run.sh
 
