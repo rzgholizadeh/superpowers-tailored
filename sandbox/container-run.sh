@@ -19,8 +19,8 @@ log "Branch: $FEATURE_BRANCH"
 log "Plan: $PLAN_PATH"
 
 # Configure git identity (GITHUB_TOKEN env var is sufficient for gh CLI auth)
-git config --global user.email "sandbox@claude-agent"
-git config --global user.name "Claude Sandbox"
+git config --global user.email "rzgholizadeh@gmail.com"
+git config --global user.name "rzgholizadeh"
 git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 # Clone repo
