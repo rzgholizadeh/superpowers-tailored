@@ -28,7 +28,7 @@ You MUST create a task for each of these items and complete them in order:
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
 5. **Detect repo context** — run plan placement detection (see ## Plan Placement below)
-6. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` inside the correct repo and commit
+6. **Write design doc** — save to `docs/plans/YYYY-MM-DD-<topic>-design.md` inside the correct repo (do NOT commit — writing-plans will create the branch and commit both docs together)
 7. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
@@ -110,7 +110,7 @@ digraph plan_placement {
 **Documentation:**
 - Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
 - Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+- Do NOT commit — writing-plans will create the feature branch and commit both the design doc and plan together
 
 **Implementation:**
 - Invoke the writing-plans skill to create a detailed implementation plan

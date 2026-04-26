@@ -42,7 +42,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Tech Stack:** [Key technologies/libraries]
 **Repo:** [output of: git remote get-url origin]
 **Base Branch:** [output of: git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@' — fallback: main]
-**Feature Branch:** feat/[YYYY-MM-DD-<topic>] (derived from plan filename, created by container not planner)
+**Feature Branch:** feat/[YYYY-MM-DD-<topic>] (derived from plan filename, created by writing-plans before handoff)
 
 ---
 ```
@@ -97,9 +97,18 @@ git commit -m "feat: add specific feature"
 - Reference relevant skills with @ syntax
 - DRY, YAGNI, TDD, frequent commits
 
-## Commit and Push the Plan
+## Create Branch, Commit, and Push
 
-- Commit and push the plan file: `git add docs/plans/<filename>.md && git commit -m "docs: add <feature> plan" && git push`
+After saving the plan, create the feature branch and publish both the design doc and plan to it:
+
+```bash
+git checkout -b feat/YYYY-MM-DD-<topic>
+git add docs/plans/YYYY-MM-DD-<topic>-design.md docs/plans/YYYY-MM-DD-<topic>.md
+git commit -m "docs: add design and implementation plan for <feature>"
+git push -u origin feat/YYYY-MM-DD-<topic>
+```
+
+For multi-repo features, repeat in each affected repo.
 
 ## Execution Handoff
 

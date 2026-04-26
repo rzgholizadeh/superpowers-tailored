@@ -28,9 +28,8 @@ log "Cloning $REPO_URL..."
 git clone "$REPO_URL" /workspace
 cd /workspace
 
-# Checkout base branch and create feature branch
-git checkout "$BASE_BRANCH"
-git checkout -b "$FEATURE_BRANCH"
+# Checkout feature branch (created and pushed by writing-plans)
+git checkout "$FEATURE_BRANCH"
 log "On branch $FEATURE_BRANCH"
 
 # Run Claude: read README, install deps, execute plan
