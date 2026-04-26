@@ -35,7 +35,7 @@ log "On branch $FEATURE_BRANCH"
 # Run Claude: read README, install deps, execute plan
 log "Starting Claude Code..."
 CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude --dangerously-skip-permissions \
-  -p "Read the README first. Install any missing OS-level or project-level dependencies. Then use superpowers:subagent-driven-development on $PLAN_PATH." \
+  -p "Read the README first. Install any missing OS-level or project-level dependencies. Then use superpowers:subagent-driven-development on $PLAN_PATH. IMPORTANT: Do NOT run integration tests — only unit tests. Do NOT invoke superpowers:finishing-a-development-branch — the container script handles pushing and PR creation." \
   2>&1 | tee -a "$LOG"
 
 # Push feature branch
